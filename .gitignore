@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+env/
+.env
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Project Specific
+invoice-pipeline/temp_*
+temp_*
+chroma_db/
+*.log
+
+# OS Generated
+.DS_Store
+Thumbs.db

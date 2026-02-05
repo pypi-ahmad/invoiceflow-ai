@@ -1,0 +1,7 @@
+streamlit
+pandas
+rapidfuzz
+requests
+watchdog # To watch folders for new files
+plotly
+numpy
