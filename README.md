@@ -36,21 +36,24 @@ It features a "Human-in-the-Loop" dashboard for reviewing flagged discrepancies,
 
 ```mermaid
 graph TD
-    A[Input Stream (PDF/Images)] --> B(Vision-LLM Engine)
+    A[Input Stream PDF Images] --> B[Vision LLM Engine]
     B --> C{Data Processor}
     
     C --> D[Vector Vendor Match]
-    D -->|Ollama Embeddings| D1[(Vendor Master DB)]
+    D -->|Ollama Embeddings| D1[Vendor Master DB]
     
     C --> E[3-Way Matching]
-    E -->|Lookup| E1[(ERP Mock DB)]
+    E -->|Lookup| E1[ERP Mock DB]
     
     C --> F[Forensic Audit Agent]
     F -->|Llama 3| F1[Fraud Risk Score]
     
-    D & E & F --> G[Streamlit Dashboard]
+    D --> G[Streamlit Dashboard]
+    E --> G
+    F --> G
+    
     G --> H{Human Review}
-    H -->|Approve| I[Export to JSON/CSV]
+    H -->|Approve| I[Export to JSON CSV]
     H -->|Reject| J[Flag for Review]
 ```
 
