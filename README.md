@@ -70,8 +70,8 @@ graph TD
 
 1. **Clone the repository**
    ```bash
-   git clone <repository_url>
-   cd invoice-pipeline
+   git clone https://github.com/pypi-ahmad/invoiceflow-ai.git
+   cd invoiceflow-ai
    ```
 
 2. **Install dependencies**
