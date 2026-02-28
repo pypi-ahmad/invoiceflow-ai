@@ -15,6 +15,7 @@ processing modules (OCR, Validation, Vector DB).
 import streamlit as st
 import pandas as pd
 import os
+import tempfile
 from ocr_engine import extract_invoice_data
 from processor import process_pipeline
 
@@ -39,18 +40,35 @@ if run_btn and uploaded_files:
         for uploaded_file in uploaded_files:
             # 1. Save temp file
             bytes_data = uploaded_file.getvalue()
-            temp_path = f"temp_{uploaded_file.name}"
-            with open(temp_path, "wb") as f:
-                f.write(bytes_data)
-            
-            # 2. Pipeline Execution
-            raw_data = extract_invoice_data(temp_path)
-            processed_data = process_pipeline(raw_data)
-            processed_data['filename'] = uploaded_file.name
-            results.append(processed_data)
-            
-            # Cleanup
-            os.remove(temp_path)
+            temp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    delete=False,
+                    suffix=os.path.splitext(uploaded_file.name)[1]
+                ) as tmp:
+                    tmp.write(bytes_data)
+                    temp_path = tmp.name
+                
+                # 2. Pipeline Execution
+                raw_data = extract_invoice_data(temp_path)
+                
+                # C-02: Check for OCR failures before pipeline
+                if "error" in raw_data:
+                    raw_data['flags'] = ["🔴 OCR Failed"]
+                    raw_data['standardized_vendor'] = "Unknown"
+                    raw_data['audit_risk_score'] = 0
+                    raw_data['audit_flags'] = []
+                    raw_data['po_match_status'] = "⚠️ Skipped (OCR Error)"
+                    processed_data = raw_data
+                else:
+                    processed_data = process_pipeline(raw_data)
+                
+                processed_data['filename'] = uploaded_file.name
+                results.append(processed_data)
+            finally:
+                # Cleanup
+                if temp_path and os.path.exists(temp_path):
+                    os.remove(temp_path)
 
     # Convert to DataFrame for display
     df = pd.json_normalize(results)

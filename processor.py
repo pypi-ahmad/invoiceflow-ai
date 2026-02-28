@@ -12,7 +12,6 @@ It transforms raw OCR data into a validated, flagged business object.
 
 import pandas as pd
 from rapidfuzz import process, fuzz
-from datetime import datetime
 import requests
 import json
 from vector_db import smart_match_vendor
@@ -61,18 +60,18 @@ def audit_invoice_with_ai(invoice_json):
                 'messages': [{'role': 'user', 'content': AUDIT_PROMPT + json.dumps(invoice_json)}],
                 'stream': False,
                 'format': 'json' 
-            }
+            },
+            timeout=30
         )
         if response.status_code == 200:
              content = response.json()['message']['content']
              return json.loads(content)
         return {"risk_score": 0, "flags": ["AI Audit Failed"]}
-    except Exception as e:
-        return {"risk_score": 0, "flags": [f"Audit Error: {str(e)}"]}
+    except Exception:
+        return {"risk_score": 0, "flags": ["Audit unavailable"]}
 
 def match_vendor(raw_name):
     """Fuzzy matches OCR vendor name to Master Database"""
-    # ... existing code ...
     if not raw_name: return "Unknown"
     
     # Returns (match, score, index)
@@ -96,7 +95,11 @@ def validate_invoice(data):
         flags.append("🔴 Duplicate Invoice Detected")
 
     # 2. Check for High Value
-    if data.get('total_amount', 0) > 10000:
+    try:
+        total = float(data.get('total_amount', 0))
+    except (TypeError, ValueError):
+        total = 0
+    if total > 10000:
         flags.append("🟠 High Value - Approval Needed")
 
     # 3. Check Data Integrity
@@ -137,6 +140,16 @@ def process_pipeline(raw_json):
     
     # 2. Run Rule-Based Validation
     raw_json['flags'] = validate_invoice(raw_json)
+    
+    # Record processed invoice for future duplicate detection
+    global PROCESSED_DB
+    new_row = pd.DataFrame([{
+        "invoice_number": raw_json.get('invoice_number'),
+        "vendor": raw_json.get('vendor_name'),
+        "total": raw_json.get('total_amount'),
+        "date": raw_json.get('invoice_date'),
+    }])
+    PROCESSED_DB = pd.concat([PROCESSED_DB, new_row], ignore_index=True)
     
     # 3. AI Audit Guard
     audit_result = audit_invoice_with_ai(raw_json)

@@ -55,5 +55,5 @@ def check_3_way_match(invoice_data):
             return "✅ Matched"
         else:
             return f"❌ Variance of ${variance:.2f}"
-    except:
+    except (TypeError, ValueError):
         return "⚠️ Error calculating variance"

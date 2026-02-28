@@ -61,7 +61,8 @@ def extract_invoice_data(image_path):
                     'images': [image_base64]
                 }],
                 'stream': False
-            }
+            },
+            timeout=30
         )
         
         response.raise_for_status()
@@ -71,5 +72,5 @@ def extract_invoice_data(image_path):
         content = response_data['message']['content'].replace("```json", "").replace("```", "").strip()
         return json.loads(content)
         
-    except Exception as e:
-        return {"error": str(e), "file": image_path}
+    except Exception:
+        return {"error": "OCR processing failed", "file": image_path}

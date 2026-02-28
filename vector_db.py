@@ -13,7 +13,6 @@ It includes:
 
 import requests
 import numpy as np
-import json
 
 # Mock Vendor Master Data
 VENDORS = [
@@ -43,7 +42,7 @@ def get_embedding(text, model="nomic-embed-text"):
             "model": model,
             "prompt": text
         }
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=30)
         if response.status_code == 200:
             return response.json().get('embedding')
         else:
@@ -56,7 +55,10 @@ def get_embedding(text, model="nomic-embed-text"):
         return None
 
 def cosine_similarity(v1, v2):
-    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    norm_product = np.linalg.norm(v1) * np.linalg.norm(v2)
+    if norm_product == 0:
+        return 0.0
+    return np.dot(v1, v2) / norm_product
 
 def initialize_vector_db():
     """Compute embeddings for all vendors on startup"""
@@ -94,11 +96,11 @@ def smart_match_vendor(ocr_name):
         initialize_vector_db()
         
     if not VENDOR_EMBEDDINGS:
-        return f"Unknown (DB Init Failed)"
+        return "Unknown (DB Init Failed)"
 
     input_emb = get_embedding(ocr_name, model='embeddinggemma')
     if not input_emb:
-        return f"Unknown (Embedding Failed)"
+        return "Unknown (Embedding Failed)"
 
     best_match = None
     best_score = -1.0

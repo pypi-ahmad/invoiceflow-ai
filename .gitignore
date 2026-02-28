@@ -30,3 +30,7 @@ chroma_db/
 # OS Generated
 .DS_Store
 Thumbs.db
+
+# Coverage
+.coverage
+
