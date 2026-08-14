@@ -572,3 +572,5 @@ The following are grounded in patterns observable in the codebase (code comments
 - **File watcher** — `watchdog` is listed as a dependency with the comment *"To watch folders for new files."* A folder-watcher mode could automate incoming invoice processing.
 - **Structured logging** — Replacing `print()` calls with Python's `logging` module would improve observability.
 - **CI/CD automation** — Adding a GitHub Actions workflow to run `pytest` on push would enforce the existing test coverage gate.
+
+<p align="center">Made with ❤️ by Ahmad Mujtaba</p>
